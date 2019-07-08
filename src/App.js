@@ -1,26 +1,165 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Component} from 'react'
+import Podcast from './Components/Podcast/Podcast'
+import Navbar from './Components/Navbar'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+  state = {
+    podNumCap: 10,
+    podNum: 0,
+    podcasts: [],
+    feed: [
+      'http://feeds.twit.tv/sn.xml', 
+      'http://lpotl.libsyn.com/rss',
+      'https://rss.art19.com/hello-from-the-magic-tavern',
+      'http://wizbru.libsyn.com/rss'
+      ],
+    currentFeed: ''
+  }
+
+  getFeed = (url) => {
+    // complete the api target url
+    let target = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURI(url)
+    return fetch(target).then(res => {
+      return res.text().then(txt => {
+        // set up DOMParser and podcast attribute variables
+          let doc = JSON.parse(txt)
+          return doc;
+      // catch errors
+      }).catch(err => console.log(err))
+    }).catch(err => console.log(err))
+  }
+
+  getAllFeeds = async (urlArray, numEpisodesToAdd, startIndex) => {
+    let podcasts = [...this.state.podcasts];
+    let podNum = this.state.podNum;
+    let newPodcast;
+    let numPodcasts = Math.floor(numEpisodesToAdd / urlArray.length)
+
+    for (let i = 0; i < urlArray.length; i++) {
+      newPodcast = (await this.getFeed(urlArray[i]))
+
+      for (let j = startIndex; j < numPodcasts; j++) {  
+        let owner = newPodcast.feed.title;
+        let title = newPodcast.items[j].title;
+        let date = newPodcast.items[j].pubDate
+        let mediaUrl = newPodcast.items[j].enclosure.link
+        let thumbnail = newPodcast.feed.image;
+
+        let newEpisode = {owner, title, date, mediaUrl, thumbnail}
+        newEpisode = this.parsePodcastDate(newEpisode);
+        podcasts.push(newEpisode);
+
+        podNum++;
+      }
+    }
+    this.setState({podcasts, podNum})
+  }
+
+  parseDate = date => {
+    const chars = 10;
+    let ret = "";
+
+    for (let i=0; i<chars; i++) {
+      ret += date[i];
+    }
+    return ret;
+  }
+
+  parsePodcastDate = (podcast) => {
+    let date = podcast.date;
+    let year = date.slice(0, 4);
+    let month = date.slice(5,7);
+    let day = date.slice(8, 10);
+    
+    return {...podcast, year, month, day}
+  }
+
+  generateKey = (podTitle, podDate) => {
+    let max = 10000;
+    let min = 100;
+
+    let randA = Math.floor(Math.random() * (max - min)) + min;
+    let randB = Math.floor(Math.random() * (max - min)) + min;
+    let randC = Math.floor(Math.random() * (max - min)) + min;
+
+    return String(podTitle) + String(podDate) + String(randA) + String(randB) + String(randC);
+  }
+
+  imageBroken = () => "Image Unavailable"
+
+  dateCompare = (pod1, pod2) => {
+    let yearCompare = pod2.year - pod1.year;
+    
+    if (yearCompare === 0) {
+      let monthCompare = pod2.month - pod1.month;
+
+      if (monthCompare === 0) {
+        let dayCompare = pod2.day - pod1.day;
+
+        if (dayCompare === 0)
+          return 0
+        else
+          return dayCompare
+      } else
+        return monthCompare
+    } else
+      return yearCompare
+  }
+
+  enterFeedHandler = async (url, numEpisodes) => {
+    let feed = await this.getFeed(url);
+    let podcasts = [];
+    let podNum = 0;
+
+    for (let i=0; i<numEpisodes; i++) {
+      let owner = feed.feed.title;
+      let title = feed.items[i].title;
+      let date = feed.items[i].pubDate
+      let mediaUrl = feed.items[i].enclosure.link
+      let thumbnail = feed.feed.image;
+
+      let newEpisode = {owner, title, date, mediaUrl, thumbnail}
+      newEpisode = this.parsePodcastDate(newEpisode);
+      podNum++;
+
+      console.log(newEpisode)
+
+      podcasts.push(newEpisode);
+    }
+    this.setState({podcasts, podNum})
+  }
+  newFeedHandler = e => this.setState({currentFeed: e.target.value});
+  addFeed = url => this.setState({feed: [...this.state.feed, url]});
+
+
+  render () {
+    let podcasts = <h3>no podcasts loaded, enter the rss feed url of a podcast to view and listen to it's feed </h3>
+
+    if (this.state.podcasts.length) {
+      let podcastList = this.state.podcasts.sort(this.dateCompare);
+
+      podcasts = podcastList.map(p => 
+        <Podcast 
+          key={this.generateKey(p.title, p.date)}
+          imgBroken={this.imageBroken}
+          podCreator={p.owner}
+          podTitle={p.title} 
+          podMedia={p.mediaUrl}
+          podThumbnail={p.thumbnail}
+          podDate={this.parseDate(p.date)} />
+      )
+    }
+
+    return (
+      <div>
+        <Navbar
+          inputText={this.state.currentFeed}
+          inputChange={this.newFeedHandler}
+          enterHandler={() => this.enterFeedHandler(this.state.currentFeed, 10)} />
+        {podcasts}
+      </div>
+    );
+  }
 }
 
 export default App;
