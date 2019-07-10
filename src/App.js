@@ -1,12 +1,15 @@
 import React, {Component} from 'react'
 import Podcast from './Components/Podcast/Podcast'
 import Navbar from './Components/Navbar'
+import Message from './Components/Message'
 
 class App extends Component {
   state = {
     podNumCap: 10,
     podNum: 0,
     podcasts: [],
+    owner: "",
+    lastUpdated: "",
     feed: [
       'http://feeds.twit.tv/sn.xml', 
       'http://lpotl.libsyn.com/rss',
@@ -110,39 +113,50 @@ class App extends Component {
     let feed = await this.getFeed(url);
     let podcasts = [];
     let podNum = 0;
+    let owner = feed.feed.title;
+    let lastUpdated = "";
 
     for (let i=0; i<numEpisodes; i++) {
-      let owner = feed.feed.title;
       let title = feed.items[i].title;
-      let date = feed.items[i].pubDate
       let mediaUrl = feed.items[i].enclosure.link
       let thumbnail = feed.feed.image;
+      let date = feed.items[i].pubDate
+      // get most recent episode for 'last updated' state
+      if (i === 0) lastUpdated = this.parseDate(date);
 
       let newEpisode = {owner, title, date, mediaUrl, thumbnail}
       newEpisode = this.parsePodcastDate(newEpisode);
       podNum++;
-
-      console.log(newEpisode)
-
       podcasts.push(newEpisode);
     }
-    this.setState({podcasts, podNum})
+    this.setState({podcasts, owner, lastUpdated, podNum})
   }
+
   newFeedHandler = e => this.setState({currentFeed: e.target.value});
   addFeed = url => this.setState({feed: [...this.state.feed, url]});
 
 
   render () {
-    let podcasts = <h3>no podcasts loaded, enter the rss feed url of a podcast to view and listen to it's feed </h3>
+    let podcasts = null;
+    let message = <Message
+                      msgHeader="No podcast feed loaded" 
+                      msgText="Enter the rss url of a podcast to view and listen to it's feed"/>;
 
     if (this.state.podcasts.length) {
       let podcastList = this.state.podcasts.sort(this.dateCompare);
+
+      let msgHeader = "loaded feed for '" + this.state.owner + "'";
+      let msgText = "Displaying " + this.state.podNum + " episodes \n";
+      let msgUpdated = "Last updated " + this.state.lastUpdated + "\n";
+      message = <Message 
+                  msgHeader={msgHeader} 
+                  msgText={msgText} 
+                  msgUpdated={msgUpdated} />
 
       podcasts = podcastList.map(p => 
         <Podcast 
           key={this.generateKey(p.title, p.date)}
           imgBroken={this.imageBroken}
-          podCreator={p.owner}
           podTitle={p.title} 
           podMedia={p.mediaUrl}
           podThumbnail={p.thumbnail}
@@ -156,7 +170,12 @@ class App extends Component {
           inputText={this.state.currentFeed}
           inputChange={this.newFeedHandler}
           enterHandler={() => this.enterFeedHandler(this.state.currentFeed, 10)} />
-        {podcasts}
+        <div className="container">
+          {message}
+          <div className="row mb-2">
+            {podcasts}
+          </div>
+        </div>
       </div>
     );
   }

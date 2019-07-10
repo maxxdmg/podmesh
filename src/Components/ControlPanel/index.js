@@ -23,7 +23,7 @@ const ControlPanel = props => {
 		    	<FaUndo className="mb-1" /> 
 		    </button>
 		
-		    <a href="google.com"> 
+		    <a href="https://github.com/maxxdmg/podmesh"> 
 		    	<FaGithubSquare size="2.85em" /> 
 		    </a> 
 

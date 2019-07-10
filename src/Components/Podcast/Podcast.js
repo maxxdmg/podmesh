@@ -1,34 +1,20 @@
 import React from 'react';
+import Episode from './Episode';
 
 const Podcast = props => {
 	return (
-		<div className="container row pr-0" style={{width:"50vw", height:"12vw"}}>
-			<div className="col-sm-3 pr-0">
+		<div className="col-md-12">
+			<div className="card flex-md-row mb-4 box-shadow h-md-250">
 				<img 
-					style={{width: "100%"}}
-		  			src={props.podThumbnail} 
-		  			alt={"broken!"}
-		  			onError={props.imgBroken} />
-			</div>
-			<div className="card col-sm-9 p-0 border-0 rounded-0" >
-					<div className="card-body pt-0">
-						<div className="row">
-							<div className="col-sm-7">
-								<p>{props.podCreator}</p>
-							</div>
-							<div className="col-sm-2" />
-							<div className="col-sm-3">
-			    				<p className="card-text" style={{textAlign: "right"}}>{props.podDate}</p>
-							</div>
-						</div>
-
-	    			<p className="card-title">{props.podTitle}</p>
-	    		
-	    			<audio 
-	    				className="w-100"
-	    				controls
-	    				src={props.podMedia} />
-			  		</div>
+					className="card-img-left img-thumbnail p-0 border-none flex-auto d-none d-md-block"
+					style={{minWidth: "8.5vw", maxWidth: "25.6vw", height: "128px"}}
+					src={props.podThumbnail} 
+			  		alt={"broken!"}
+			  		onError={props.imgBroken} />
+			  	<Episode 
+		  			date={props.podDate}
+		  			title={props.podTitle} 
+		  			media={props.podMedia} />
 			</div>
 		</div>
 		)
