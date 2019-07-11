@@ -2,7 +2,8 @@ import React from 'react';
 
 let Episode = props => {
 	return (
-		<div className="card-body d-flex flex-column align-items-start">
+		<div className="card-body shadow-sm bg-dark rounded-right
+		d-flex flex-column align-items-start text-white">
 			<strong 
 				className="mb-0">
 				{props.title}

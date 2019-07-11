@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import Podcast from './Components/Podcast/Podcast'
 import Navbar from './Components/Navbar'
 import Message from './Components/Message'
+import Spinner from './Components/Spinner'
 
 class App extends Component {
   state = {
@@ -16,16 +17,19 @@ class App extends Component {
       'https://rss.art19.com/hello-from-the-magic-tavern',
       'http://wizbru.libsyn.com/rss'
       ],
-    currentFeed: ''
+    currentFeed: '',
+    loading: false
   }
 
   getFeed = (url) => {
+    this.setState({loading:true})
     // complete the api target url
     let target = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURI(url)
     return fetch(target).then(res => {
       return res.text().then(txt => {
         // set up DOMParser and podcast attribute variables
           let doc = JSON.parse(txt)
+          this.setState({loading:false})
           return doc;
       // catch errors
       }).catch(err => console.log(err))
@@ -129,7 +133,11 @@ class App extends Component {
       podNum++;
       podcasts.push(newEpisode);
     }
-    this.setState({podcasts, owner, lastUpdated, podNum})
+    this.setState({
+      podcasts, 
+      owner, 
+      lastUpdated, 
+      podNum})
   }
 
   newFeedHandler = e => this.setState({currentFeed: e.target.value});
@@ -137,7 +145,10 @@ class App extends Component {
 
 
   render () {
-    let podcasts = null;
+    let podcasts = null; 
+    if (this.state.loading)
+      podcasts = <Spinner />
+
     let message = <Message
                       msgHeader="No podcast feed loaded" 
                       msgText="Enter the rss url of a podcast to view and listen to it's feed"/>;

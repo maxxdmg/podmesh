@@ -10,7 +10,7 @@ let Message = props => {
 			   	</div>)
 
 	return (
-		<div className="jumbotron p-3 p-md-5 mt-3 text-white rounded bg-dark">
+		<div className="jumbotron shadow p-3 p-md-5 mt-3 text-white rounded bg-dark">
 			<h1 className="display-4">{props.msgHeader}</h1>
 			{text}
 		</div>
