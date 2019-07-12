@@ -3,6 +3,7 @@ import Podcast from './Components/Podcast/Podcast'
 import Navbar from './Components/Navbar'
 import Message from './Components/Message'
 import Spinner from './Components/Spinner'
+import ErrorMsg from './Components/Error'
 
 class App extends Component {
   state = {
@@ -18,48 +19,41 @@ class App extends Component {
       'http://wizbru.libsyn.com/rss'
       ],
     currentFeed: '',
-    loading: false
+    loading: false,
+    error: null
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.state.currentFeed !== nextState.currentFeed)
+      return false
+    else return true;
   }
 
   getFeed = (url) => {
-    this.setState({loading:true})
+    this.setState({loading:true, podcasts: []})
     // complete the api target url
     let target = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURI(url)
     return fetch(target).then(res => {
       return res.text().then(txt => {
         // set up DOMParser and podcast attribute variables
           let doc = JSON.parse(txt)
-          this.setState({loading:false})
-          return doc;
+
+          if (doc.status !== "ok"){
+            this.setState({
+              podcasts: [],
+              
+              error: "Invalid url. Are you sure it is an rss feed?"}) 
+          } else if (doc.items[0].enclosure.type !== "audio/mpeg") {
+            this.setState({
+              podcasts: [],
+              
+              error: "Invalid rss feed. Must be a podcast rss feed"}) 
+          }
+
+          return doc;        
       // catch errors
-      }).catch(err => console.log(err))
-    }).catch(err => console.log(err))
-  }
-
-  getAllFeeds = async (urlArray, numEpisodesToAdd, startIndex) => {
-    let podcasts = [...this.state.podcasts];
-    let podNum = this.state.podNum;
-    let newPodcast;
-    let numPodcasts = Math.floor(numEpisodesToAdd / urlArray.length)
-
-    for (let i = 0; i < urlArray.length; i++) {
-      newPodcast = (await this.getFeed(urlArray[i]))
-
-      for (let j = startIndex; j < numPodcasts; j++) {  
-        let owner = newPodcast.feed.title;
-        let title = newPodcast.items[j].title;
-        let date = newPodcast.items[j].pubDate
-        let mediaUrl = newPodcast.items[j].enclosure.link
-        let thumbnail = newPodcast.feed.image;
-
-        let newEpisode = {owner, title, date, mediaUrl, thumbnail}
-        newEpisode = this.parsePodcastDate(newEpisode);
-        podcasts.push(newEpisode);
-
-        podNum++;
-      }
-    }
-    this.setState({podcasts, podNum})
+      }).catch(err => this.setState({error: err}))
+    }).catch(err => this.setState({error: err}))
   }
 
   parseDate = date => {
@@ -115,6 +109,9 @@ class App extends Component {
 
   enterFeedHandler = async (url, numEpisodes) => {
     let feed = await this.getFeed(url);
+    if (feed.status !== "ok" || feed.items[0].enclosure.type !== "audio/mpeg")
+            return;
+
     let podcasts = [];
     let podNum = 0;
     let owner = feed.feed.title;
@@ -133,27 +130,33 @@ class App extends Component {
       podNum++;
       podcasts.push(newEpisode);
     }
+
     this.setState({
-      podcasts, 
-      owner, 
-      lastUpdated, 
-      podNum})
+      podcasts, owner, lastUpdated, podNum, 
+      loading: false,
+      error: null})
   }
 
   newFeedHandler = e => this.setState({currentFeed: e.target.value});
   addFeed = url => this.setState({feed: [...this.state.feed, url]});
 
-
   render () {
     let podcasts = null; 
-    if (this.state.loading)
-      podcasts = <Spinner />
 
     let message = <Message
                       msgHeader="No podcast feed loaded" 
                       msgText="Enter the rss url of a podcast to view and listen to it's feed"/>;
+    if (this.state.loading) {
+      message = <Spinner />
+    }
 
-    if (this.state.podcasts.length) {
+
+    let err = null;
+    if (this.state.error) {
+      err = <ErrorMsg errText={this.state.error} />
+    }
+
+    if (this.state.podcasts.length && !this.state.loading) {
       let podcastList = this.state.podcasts.sort(this.dateCompare);
 
       let msgHeader = "loaded feed for '" + this.state.owner + "'";
@@ -182,6 +185,7 @@ class App extends Component {
           inputChange={this.newFeedHandler}
           enterHandler={() => this.enterFeedHandler(this.state.currentFeed, 10)} />
         <div className="container">
+          {err}
           {message}
           <div className="row mb-2">
             {podcasts}

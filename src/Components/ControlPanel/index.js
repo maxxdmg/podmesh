@@ -6,7 +6,7 @@ const ControlPanel = props => {
 	return (
 		  <div className="form-inline">
 		    <input 
-		    	className="form-control mr-sm-3" 
+		    	className="form-control mr-sm-3 ml-sm-3" 
 		    	placeholder="RSS Feed URL" 
 		    	aria-label="FeedURL" 
 		    	onChange={props.inputChange} />
