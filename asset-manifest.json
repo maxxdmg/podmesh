@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/podmesh/static/css/main.4d3f02c5.chunk.css",
+    "main.js": "/podmesh/static/js/main.85e22be1.chunk.js",
+    "main.js.map": "/podmesh/static/js/main.85e22be1.chunk.js.map",
+    "runtime~main.js": "/podmesh/static/js/runtime~main.abb2f0d9.js",
+    "runtime~main.js.map": "/podmesh/static/js/runtime~main.abb2f0d9.js.map",
+    "static/js/2.e25d0101.chunk.js": "/podmesh/static/js/2.e25d0101.chunk.js",
+    "static/js/2.e25d0101.chunk.js.map": "/podmesh/static/js/2.e25d0101.chunk.js.map",
+    "index.html": "/podmesh/index.html",
+    "precache-manifest.f4c1981fdc6334c9c86bdd34d8424db0.js": "/podmesh/precache-manifest.f4c1981fdc6334c9c86bdd34d8424db0.js",
+    "service-worker.js": "/podmesh/service-worker.js",
+    "static/css/main.4d3f02c5.chunk.css.map": "/podmesh/static/css/main.4d3f02c5.chunk.css.map"
+  }
+}
